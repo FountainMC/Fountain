@@ -1,23 +1,26 @@
 package org.fountainmc;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.util.HashMap;
 import java.util.Map;
 
 import com.google.common.base.Charsets;
+import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
+import lombok.Getter;
 import net.minecraft.server.MinecraftServer;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public class FountainConfig extends Metrics {
+
+    @Getter private transient static FountainConfig instance;
+    @Getter @Expose private String serverClosedMessage = "Server Closed";
+    @Getter @Expose private boolean snooperEnabled = true;
 
     public FountainConfig() throws IOException {
         super("Fountain", WetServer.VERSION);
@@ -33,10 +36,12 @@ public class FountainConfig extends Metrics {
         return MinecraftServer.getDedicatedServer().getPlayerList().getCurrentPlayerCount();
     }
 
-    @SerializedName("metrics") private Map<String, Object> metricsConfiguration = new HashMap<>();
+    @SerializedName("metrics") private Map<String, Object> metricsConfiguration;
 
     @Override
     public Map<String, Object> getMetricsConfiguration() {
+        if (metricsConfiguration == null)
+            metricsConfiguration = new HashMap<String, Object>();
         return metricsConfiguration;
     }
 
@@ -48,7 +53,7 @@ public class FountainConfig extends Metrics {
         } else {
             config = new FountainConfig();
         }
-        WetServer.GSON.toJson(config, new BufferedWriter(new OutputStreamWriter(new FileOutputStream(configFile), Charsets.UTF_8)));
+        instance = config;
         return config;
     }
 

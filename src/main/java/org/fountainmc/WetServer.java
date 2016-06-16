@@ -33,6 +33,7 @@ public class WetServer implements Server {
     private final ImmutableList<String> launchArguments;
 
     public static final Gson GSON = new GsonBuilder()
+            .excludeFieldsWithoutExposeAnnotation()
             .setPrettyPrinting()
             .setLenient()
             .registerTypeAdapter(UUID.class, new TypeAdapter<UUID>() {
@@ -48,10 +49,11 @@ public class WetServer implements Server {
                 }
             })
             .create();
+
     public static final String VERSION = "1.9.4-alpha1-SNAPSHOT";
 
     public WetServer(String[] args) {
-        pluginManager = new PluginManager();
+        this.pluginManager = new PluginManager();
         this.launchArguments = ImmutableList.copyOf(args);
         try {
             FountainConfig.load(new File("fountain.json"));
@@ -114,6 +116,21 @@ public class WetServer implements Server {
             Item item = Item.getByNameOrId(name);
             if (item == null) {
                 throw new IllegalArgumentException("Unknown material name " + name);
+            } else {
+                return item.getFountainType();
+            }
+        } else {
+            return block.getFountainType();
+        }
+    }
+
+    @Override
+    public Material getMaterial(int id) {
+        Block block = Block.getBlockById(checkNotNull(id, "Null id"));
+        if (block == null) {
+            Item item = Item.getItemById(id);
+            if (item == null) {
+                throw new IllegalArgumentException("Unknown material id " + id);
             } else {
                 return item.getFountainType();
             }
